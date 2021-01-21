@@ -20,6 +20,10 @@ def generate_historic_data_matrix(historic_data, modeling='item'):
 
     tokens = retrieve_unique_tokens(historic_data)
 
+
+    tokens['users'] = {user_id: index for index, user_id in enumerate(tokens['users'])}
+    tokens['items'] = {item_id: index for index, item_id in enumerate(tokens['items'])}
+
     # making a matrix of zeros
     if modeling == 'item':
 
@@ -31,8 +35,8 @@ def generate_historic_data_matrix(historic_data, modeling='item'):
 
     for row in historic_data:
 
-        user = tokens['users'].index(row[0])
-        item = tokens['items'].index(row[1])
+        user = tokens['users'][row[0]]
+        item = tokens['items'][row[1]]
 
         # rating given by the user
         rating = int(row[2])
@@ -47,6 +51,7 @@ def generate_historic_data_matrix(historic_data, modeling='item'):
 
     return matrix, tokens
 
+
 def model_similarity_matrix(historic_data, similarity_metric='cosine', modeling='item'):
     """
 
@@ -55,15 +60,14 @@ def model_similarity_matrix(historic_data, similarity_metric='cosine', modeling=
         return similarity_matrix
 
     """
-
     matrix, tokens = generate_historic_data_matrix(historic_data, modeling)
 
     amount_rows = len(tokens['items'])
 
     # the amount of rows and columns will be the same
-    similarity_matrix = [[0] * amount_rows] * amount_rows
+    similarity_matrix = [[None] * amount_rows] * amount_rows
 
-    verified_tuples = []
+    pre_computed_similarity = {index: metrics.pre_compute_similarity(row) for index, row in enumerate(matrix)}
 
     for index_one, row_one in enumerate(matrix):
 
@@ -73,19 +77,20 @@ def model_similarity_matrix(historic_data, similarity_metric='cosine', modeling=
 
                 similarity_matrix[index_one][index_two] = 1
 
-            elif tuple(index_two, index_one) in verified_tuples:
+            elif similarity_matrix[index_one][index_two] is not None:
 
-                similarity_matrix[index_one][index_two] = similarity_matrix[index_two][index_one]
+                continue
 
             else:
 
-                similarity_matrix[index_one][index_two] = metrics.measure_similarity(row_one, row_two, similarity_metric)
+                similarity_matrix[index_one][index_two] = metrics.measure_similarity(row_one, row_two, similarity_metric,
+                                                                                     index_one, index_two, pre_computed_similarity)
 
-                verified_tuples.append(tuple(index_one, index_two))
+                similarity_matrix[index_two][index_one] = similarity_matrix[index_one][index_two]
 
     return similarity_matrix
 
-def k_nearest_neighbors(data_matrix, k_neighbors):
+def measure_nearest_neighbors(data_matrix, k_neighbors):
 
     pass
 
