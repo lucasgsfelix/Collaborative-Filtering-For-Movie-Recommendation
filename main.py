@@ -27,21 +27,19 @@ def read_table(file_input, sep=':', replace_char=None):
     return list(map(lambda row: row.split(sep), data))
 
 
-def measure_similarity():
+def retrieve_unique_tokens(data):
 
-    pass
+
+    return {"users": list(set(list(map(lambda row: row[0], data)))),
+            "itens": list(set(lis(map(lambda row: row[1], data))))}
+
 
 def model_matrix():
 
     pass
 
 
-def k_nearest_neighbors():
-
-    pass
-
-
-def root_mean_squared():
+def k_nearest_neighbors(data_matrix, k_neighbors):
 
     pass
 
@@ -49,5 +47,9 @@ def root_mean_squared():
 if __name__ == '__main__':
 
 
+    input_arguments = {"Historic Data": read_table(sys.argv[1]),
+                       "Prediction Data": read_table(sys.argv[2], ':', ',')}
 
-    input_arguments = {"Historic Data": read_table(sys.argv[1]), "Prediction Data": read_table(sys.argv[2], ':', ',')}
+
+
+
