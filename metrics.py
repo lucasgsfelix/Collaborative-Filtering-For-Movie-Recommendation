@@ -20,7 +20,6 @@ def select_similarity_metric(similarity_metric):
 
     assert "Unknow Similarity Measure"
 
-
 def measure_cosine_similarity(tokens_one, tokens_two):
     """
         Calculating the cosine similarity between two arrays
@@ -59,7 +58,6 @@ def measure_similarity(tokens_one, tokens_two, similarity_metric='cosine'):
     similarity_method = select_similarity_metric(similarity_metric)
 
     return similarity_method(tokens_one, tokens_two)
-
 
 def root_mean_squared(predicted, real):
     """
