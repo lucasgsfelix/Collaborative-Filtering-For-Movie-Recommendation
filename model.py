@@ -7,6 +7,7 @@ import os
 import metrics
 import utils
 
+
 def generate_historic_data_matrix(historic_data, modeling='item'):
     """
         Modeling the matrix of historical data
@@ -21,18 +22,16 @@ def generate_historic_data_matrix(historic_data, modeling='item'):
 
     tokens = retrieve_unique_tokens(historic_data)
 
-
-    tokens['users'] = {user_id: index for index, user_id in enumerate(tokens['users'])}
-    tokens['items'] = {item_id: index for index, item_id in enumerate(tokens['items'])}
-
     # making a matrix of zeros
-    if modeling == 'item':
+    if modeling == 'items':
 
-        matrix = [[0] * len(tokens['users'])] * len(tokens['items'])
+        matrix = [[0] * len(tokens['users']) for row in range(0, len(tokens['items']))]
 
     else:
 
-        matrix = [[0] * len(tokens['items'])] * len(tokens['users'])
+        matrix = [[0] * len(tokens['items']) for row in range(0, len(tokens['users']))]
+
+        #matrix = [[0] * len(tokens['items'])] * len(tokens['users'])
 
     for row in historic_data:
 
@@ -42,7 +41,7 @@ def generate_historic_data_matrix(historic_data, modeling='item'):
         # rating given by the user
         rating = int(row[2])
 
-        if modeling == 'item':
+        if modeling == 'items':
 
             matrix[item][user] = rating
 
@@ -52,23 +51,12 @@ def generate_historic_data_matrix(historic_data, modeling='item'):
 
     return matrix, tokens
 
-def retrieve_pre_computed_simlarity(matrix):
 
-    if "pre_computed_similarity.txt" not in os.listdir("Utils"):
+def verify_pre_computed_similarity_matrix(similarity_metric):
 
-        pre_computed_similarity = {index: metrics.pre_compute_similarity(row) for index, row in enumerate(matrix)}
+    return "similarity_" + similarity_metric + "_matrix.txt" in os.listdir('Utils')
 
-        utils.write_dictionary(pre_computed_similarity, "Utils/pre_computed_similarity.txt")
-
-    else:
-
-        pre_computed_similarity = utils.read_table("Utils/pre_computed_similarity.txt", ';')
-
-        pre_computed_similarity = {row[0]: row[1] for row in pre_computed_similarity}
-
-    return pre_computed_similarity
-
-def model_similarity_matrix(historic_data, similarity_metric='cosine', modeling='item'):
+def model_similarity_matrix(data, similarity_metric='cosine', modeling='items'):
     """
 
         Modeling the similarity matrix between all tokens (users, itens)
@@ -76,33 +64,64 @@ def model_similarity_matrix(historic_data, similarity_metric='cosine', modeling=
         return similarity_matrix
 
     """
-    matrix, tokens = generate_historic_data_matrix(historic_data, modeling)
+    matrix, tokens = generate_historic_data_matrix(data['Historic Data'], modeling)
 
-    amount_rows = len(tokens['items'])
+    test_tokens = retrieve_unique_tokens(data['Prediction Data'])
 
-    # the amount of rows and columns will be the same
-    similarity_matrix = [[None] * amount_rows] * amount_rows
+    amount_rows = len(test_tokens[modeling])
 
-    pre_computed_similarity = retrieve_pre_computed_simlarity(matrix)
+    # the similarity matrix will be computed only for the items in the test set
+    similarity_matrix = [[None] * len(tokens[modeling])] * amount_rows
 
-    for index_one, row_one in enumerate(matrix):
+    if verify_pre_computed_similarity_matrix(similarity_metric):
 
-        for index_two, row_two in enumerate(matrix):
+        similarity_matrix = utils.read_table("Utils/similarity_" + similarity_metric + "_matrix.txt", sep=';')
 
-            if index_one == index_two:
+        # converting the similarity to float
+        for index, row in enumerate(similarity_matrix):
 
-                similarity_matrix[index_one][index_two] = 1
+            similarity_matrix[index] = list(map(lambda x: float(x), row))
 
-            elif similarity_matrix[index_one][index_two] is not None:
+    else:
 
-                continue
+        for index_one, token_one in enumerate(test_tokens[modeling].keys()):
 
-            else:
+            for index_two, token_two in enumerate(tokens[modeling].keys()):
 
-                similarity_matrix[index_one][index_two] = metrics.measure_similarity(row_one, row_two, similarity_metric,
-                                                                                     index_one, index_two, pre_computed_similarity)
+                index_one = test_tokens[modeling][token_one]
+                index_two = tokens[modeling][token_two]
 
-                similarity_matrix[index_two][index_one] = similarity_matrix[index_one][index_two]
+                new_index_one, new_index_two = None, None
+
+                if token_two in test_tokens[modeling].keys():
+
+                    # getting the row
+                    new_index_one = test_tokens[modeling][token_two]
+
+                    # getting the column
+                    new_index_two = tokens[modeling][token_one]
+
+
+                if token_one == token_two:
+
+                    similarity_matrix[index_one][index_two] = 1
+
+                elif (similarity_matrix[index_one][index_two] is not None or
+                     (new_index_one is None and new_index_two is not None and similarity_matrix[new_index_one][new_index_two] is not None)):
+
+                    continue
+
+                else:
+
+                    similarity_matrix[index_one][index_two] = metrics.measure_similarity(matrix[index_one], matrix[index_two], similarity_metric)
+
+                    if new_index_one is not None or new_index_two is not None:
+
+                        similarity_matrix[new_index_one][new_index_two] = similarity_matrix[index_one][index_two]
+
+
+
+        utils.write_table(similarity_matrix, "Utils/similarity_" + similarity_metric + "_matrix.txt", sep=';')
 
     return similarity_matrix
 
@@ -119,5 +138,11 @@ def retrieve_unique_tokens(data):
 
     """
 
-    return {"users": list(set(list(map(lambda row: row[0], data)))),
-            "items": list(set(list(map(lambda row: row[1], data))))}
+    tokens = {"users": list(set(list(map(lambda row: row[0], data)))),
+              "items": list(set(list(map(lambda row: row[1], data))))}
+
+
+    tokens['users'] = {user_id: index for index, user_id in enumerate(tokens['users'])}
+    tokens['items'] = {item_id: index for index, item_id in enumerate(tokens['items'])}
+
+    return tokens

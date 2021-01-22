@@ -31,8 +31,17 @@ def read_table(file_input, sep=':', replace_char=None):
 
 def write_dictionary(dictionary, output_name, sep=';'):
 
-    with open(output_name, 'r') as output_file:
+    with open(output_name, 'w') as output_file:
 
         for key, value in dictionary.items():
 
-            output_file.write(sep.join([key, str(value)]) + '\n')
+            output_file.write(sep.join([str(key), str(value)]) + '\n')
+
+
+def write_table(matrix, output_name, sep=';'):
+
+    with open(output_name, 'w') as output_file:
+
+        for row in matrix:
+
+            output_file.write(sep.join(list(map(lambda x: str(x), row))) + '\n')

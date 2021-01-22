@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     start = time.time()
 
-    model.model_similarity_matrix(input_arguments['Historic Data'])
+    model.model_similarity_matrix(input_arguments)
 
     end = time.time()
 

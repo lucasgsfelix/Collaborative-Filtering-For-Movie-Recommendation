@@ -25,7 +25,7 @@ def pre_compute_similarity(token_array):
 
     return math.sqrt(sum(list(map(lambda a: a**2, token_array))))
 
-def measure_cosine_similarity(tokens_one, tokens_two, index_one=None, index_two=None, pre_computed_similarity=None):
+def measure_cosine_similarity(tokens_one, tokens_two):
     """
         Calculating the cosine similarity between two arrays
 
@@ -35,23 +35,20 @@ def measure_cosine_similarity(tokens_one, tokens_two, index_one=None, index_two=
     # measuring the numerator step
     numerator = sum(list(map(lambda a, b: a * b, tokens_one, tokens_two)))
 
-    if index_one is None and index_two is None:
 
-        # denominator from the first token
-        denominator_one = math.sqrt(sum(list(map(lambda a: a**2, tokens_one))))
+    # denominator from the first token
+    denominator_one = math.sqrt(sum(list(map(lambda a: a**2, tokens_one))))
 
-        # denominator from the second token
-        denominator_two = math.sqrt(sum(list(map(lambda a: a**2, tokens_two))))
+    # denominator from the second token
+    denominator_two = math.sqrt(sum(list(map(lambda a: a**2, tokens_two))))
 
-    else:
+    if denominator_one == 0 or denominator_two == 0:
 
-        denominator_one = pre_computed_similarity[index_one]
-
-        denominator_two = pre_computed_similarity[index_two]
+        return 0
 
     return numerator/(denominator_one * denominator_two)
 
-def measure_similarity(tokens_one, tokens_two, similarity_metric='cosine', index_one=None, index_two=None, pre_computed_similarity=None):
+def measure_similarity(tokens_one, tokens_two, similarity_metric='cosine'):
     """
         Receives as input two arrays with tokens (items or users) ratings
 
@@ -70,7 +67,7 @@ def measure_similarity(tokens_one, tokens_two, similarity_metric='cosine', index
 
     similarity_method = select_similarity_metric(similarity_metric)
 
-    return similarity_method(tokens_one, tokens_two, index_one, index_two, pre_computed_similarity)
+    return similarity_method(tokens_one, tokens_two)
 
 def root_mean_squared(predicted, real):
     """
