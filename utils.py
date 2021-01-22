@@ -27,3 +27,12 @@ def read_table(file_input, sep=':', replace_char=None):
     data = list(map(lambda row: row.split(sep), data))
 
     return list(filter(lambda row: row[0] != '', data))
+
+
+def write_dictionary(dictionary, output_name, sep=';'):
+
+    with open(output_name, 'r') as output_file:
+
+        for key, value in dictionary.items():
+
+            output_file.write(sep.join([key, str(value)]) + '\n')

@@ -3,8 +3,9 @@
     Collaborative Filtering: Modeling Methods
 
 """
+import os
 import metrics
-
+import utils
 
 def generate_historic_data_matrix(historic_data, modeling='item'):
     """
@@ -51,6 +52,21 @@ def generate_historic_data_matrix(historic_data, modeling='item'):
 
     return matrix, tokens
 
+def retrieve_pre_computed_simlarity(matrix):
+
+    if "pre_computed_similarity.txt" not in os.listdir("Utils"):
+
+        pre_computed_similarity = {index: metrics.pre_compute_similarity(row) for index, row in enumerate(matrix)}
+
+        utils.write_dictionary(pre_computed_similarity, "Utils/pre_computed_similarity.txt")
+
+    else:
+
+        pre_computed_similarity = utils.read_table("Utils/pre_computed_similarity.txt", ';')
+
+        pre_computed_similarity = {row[0]: row[1] for row in pre_computed_similarity}
+
+    return pre_computed_similarity
 
 def model_similarity_matrix(historic_data, similarity_metric='cosine', modeling='item'):
     """
@@ -67,7 +83,7 @@ def model_similarity_matrix(historic_data, similarity_metric='cosine', modeling=
     # the amount of rows and columns will be the same
     similarity_matrix = [[None] * amount_rows] * amount_rows
 
-    pre_computed_similarity = {index: metrics.pre_compute_similarity(row) for index, row in enumerate(matrix)}
+    pre_computed_similarity = retrieve_pre_computed_simlarity(matrix)
 
     for index_one, row_one in enumerate(matrix):
 
