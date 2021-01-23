@@ -60,3 +60,16 @@ def write_table(matrix, output_name, sep=';'):
         for row in matrix:
 
             output_file.write(sep.join(list(map(lambda x: str(x), row))) + '\n')
+
+def retrieve_unique_tokens(data):
+    """
+        Retrieve the unique tokens to model the matrix
+
+        return a dictionary of token and its unique items
+
+    """
+
+    tokens = {"users": list(set(list(map(lambda row: row[0], data)))),
+              "items": list(set(list(map(lambda row: row[1], data))))}
+
+    return tokens

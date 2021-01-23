@@ -67,7 +67,9 @@ def measure_similarity(tokens_one, tokens_two, similarity_metric='cosine'):
 
     similarity_method = select_similarity_metric(similarity_metric)
 
-    return similarity_method(tokens_one, tokens_two)
+    value = similarity_method(tokens_one, tokens_two)
+
+    return value
 
 def root_mean_squared(predicted, real):
     """
@@ -82,6 +84,9 @@ def root_mean_squared(predicted, real):
         return a float value
     """
 
+    if type(predicted) in [float, int] and type(real) in [float, int]:
+
+        return math.sqrt((predicted - real) ** 2)
 
     if len(predicted) != len(real):
 

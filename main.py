@@ -12,6 +12,7 @@
 import sys
 
 import model
+import metrics
 import utils
 
 
@@ -25,7 +26,7 @@ if __name__ == '__main__':
 
     start = time.time()
 
-    model.model_similarity_matrix(input_arguments)
+    model.singular_value_decomposition_pp(input_arguments, 10, 100, metrics.root_mean_squared)
 
     end = time.time()
 
