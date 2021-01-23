@@ -75,7 +75,7 @@ def model_similarity_matrix(data, similarity_metric='cosine', modeling='items'):
     amount_rows = len(test_tokens[modeling])
 
     # the similarity matrix will be computed only for the items in the test set
-    similarity_matrix = [[None] * len(tokens[modeling])] * amount_rows
+    similarity_matrix = {token_one: {token_two: 0 for token_two in tokens[modeling].keys()} for token_one in test_tokens[modeling].keys()}
 
     if verify_pre_computed_similarity_matrix(similarity_metric):
 
@@ -88,44 +88,30 @@ def model_similarity_matrix(data, similarity_metric='cosine', modeling='items'):
 
     else:
 
-        for index_one, token_one in enumerate(test_tokens[modeling].keys()):
+        for token_one in test_tokens[modeling].keys():
 
-            for index_two, token_two in enumerate(tokens[modeling].keys()):
-
-                index_one = test_tokens[modeling][token_one]
-                index_two = tokens[modeling][token_two]
-
-                new_index_one, new_index_two = None, None
-
-                if token_two in test_tokens[modeling].keys() and token_one in tokens[modeling].keys():
-
-                    # getting the row
-                    new_index_one = test_tokens[modeling][token_two]
-
-                    # getting the column
-                    new_index_two = tokens[modeling][token_one]
-
+            for token_two in tokens[modeling].keys():
 
                 if token_one == token_two:
 
-                    similarity_matrix[index_one][index_two] = 1
+                    similarity_matrix[token_one][token_two] = 1
 
-                elif (similarity_matrix[index_one][index_two] is not None or
-                     (new_index_one is None and new_index_two is not None and similarity_matrix[new_index_one][new_index_two] is not None)):
+                elif ((token_one in similarity_matrix.keys() and similarity_matrix[token_one][token_two] is not None) or
+                      (token_two in similarity_matrix.keys() and similarity_matrix[token_two][token_one] is not None)):
 
                     continue
 
                 else:
 
-                    similarity_matrix[index_one][index_two] = metrics.measure_similarity(matrix[index_one], matrix[index_two], similarity_metric)
+                    similarity_matrix[token_one][token_two] = metrics.measure_similarity(matrix[index_one], matrix[index_two], similarity_metric)
 
-                    if new_index_one is not None or new_index_two is not None:
+                    if token_two in similarity_matrix.keys():
 
-                        similarity_matrix[new_index_one][new_index_two] = similarity_matrix[index_one][index_two]
+                        similarity_matrix[token_two][token_one] = similarity_matrix[token_one][token_two]
 
+            similarity_matrix[token_one] = {k: v for k, v in sorted(similarity_matrix[token_one].items(), key=lambda item: item[1], reverse=True)}[0:100]        
 
-
-        utils.write_table(similarity_matrix, "Utils/similarity_" + similarity_metric + "_matrix.txt", sep=';')
+        utils.write_dictionary_matrix(similarity_matrix, "Utils/similarity_" + similarity_metric + "_matrix.txt", sep=';')
 
     return similarity_matrix
 

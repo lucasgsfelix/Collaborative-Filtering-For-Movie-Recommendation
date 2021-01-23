@@ -38,6 +38,21 @@ def write_dictionary(dictionary, output_name, sep=';'):
             output_file.write(sep.join([str(key), str(value)]) + '\n')
 
 
+def write_dictionary_matrix(dictionary_matrix, output_name, sep=';'):
+
+    with open(output_name, 'w') as output_file:
+
+        for key, row in dictionary.items():
+
+            output_file.write(key + sep)
+
+            for key_id, value in row.items():
+
+                output_file.write(str(key_id) + sep + str(value))
+
+        output_file.write('\n')
+
+
 def write_table(matrix, output_name, sep=';'):
 
     with open(output_name, 'w') as output_file:
