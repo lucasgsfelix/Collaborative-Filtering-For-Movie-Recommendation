@@ -68,6 +68,10 @@ def model_similarity_matrix(data, similarity_metric='cosine', modeling='items'):
 
     test_tokens = retrieve_unique_tokens(data['Prediction Data'])
 
+    # removing users with no historic
+    not_historic_users = list(filter(lambda x: x not in tokens['users'].keys(), test_tokens['users'].keys()))
+    test_tokens['users'] = {key: value for key, value in test_tokens['users'].items() if key in tokens['users'].keys()}
+
     amount_rows = len(test_tokens[modeling])
 
     # the similarity matrix will be computed only for the items in the test set
@@ -93,7 +97,7 @@ def model_similarity_matrix(data, similarity_metric='cosine', modeling='items'):
 
                 new_index_one, new_index_two = None, None
 
-                if token_two in test_tokens[modeling].keys():
+                if token_two in test_tokens[modeling].keys() and token_one in tokens[modeling].keys():
 
                     # getting the row
                     new_index_one = test_tokens[modeling][token_two]
