@@ -5,7 +5,7 @@
 """
 
 
-def generate_historic_data_matrix(historic_data, modeling, users, items):
+def generate_historic_data_matrix(historic_data, modeling, users, items, fill_zero=0):
     """
         Modeling the matrix of historical data
 
@@ -33,6 +33,10 @@ def generate_historic_data_matrix(historic_data, modeling, users, items):
 
         # rating given by the user
         rating = int(row[2])
+
+        if rating == 0:
+
+            rating = fill_zero
 
         if modeling == 'items':
 

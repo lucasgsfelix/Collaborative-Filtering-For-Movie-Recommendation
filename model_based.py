@@ -117,15 +117,38 @@ def svd_rmse(historic_rating_matrix, matrix_users_items, users, items, ratings_m
 
     for row in matrix_users_items:
 
-        user, item = row[0], row[1]
+        user, item = row[0], row[1]        
 
         user_index, item_index = users[user], items[item]
 
-        prediction =  (ratings_mean + residual_users[user_index] + residual_items[item_index] + svd_prediction(ratings[user], retrieve_column(q_matrix, item_index)))
+        prediction = (ratings_mean + residual_users[user_index] + residual_items[item_index] + svd_prediction(ratings[user], retrieve_column(q_matrix, item_index)))
 
         total_error += (historic_rating_matrix[user_index][item_index] - prediction) ** 2
 
     return math.sqrt(total_error/len(matrix_users_items))
+
+
+def make_prediction(prediction_data, ratings, ratings_mean, users, items, q_matrix, residual_users, residual_items):
+
+    predictions = []
+
+    for row in prediction_data:
+
+        user, item = row[0], row[1]
+
+        if user not in users.keys() or item not in items.keys():
+
+            prediction = ratings_mean
+
+        else:
+
+            user_index, item_index = users[user], items[item]
+
+            prediction = (ratings_mean + residual_users[user_index] + residual_items[item_index] + svd_prediction(ratings[user], retrieve_column(q_matrix, item_index)))
+
+        predictions.append(prediction)
+
+    return predictions
 
 
 def singular_value_decomposition_pp(data, latent_factors_size, epochs, error_metric):
@@ -137,6 +160,7 @@ def singular_value_decomposition_pp(data, latent_factors_size, epochs, error_met
 
 
     """
+    random.seed()
 
     users_items, users, items = data_treatment.retrieve_guide_features(data['Historic Data'])
 
@@ -145,7 +169,7 @@ def singular_value_decomposition_pp(data, latent_factors_size, epochs, error_met
     ratings_mean = measure_average_rating(data['Historic Data'])
 
     # a matrix users x items
-    historic_rating_matrix = model.generate_historic_data_matrix(data['Historic Data'], 'users', users, items)
+    historic_rating_matrix = model.generate_historic_data_matrix(data['Historic Data'], 'users', users, items, ratings_mean)
 
     # users latent matrix
     p_matrix = algebric_operations.generate_random_matrix(latent_factors_size, len(users))
@@ -195,3 +219,14 @@ def singular_value_decomposition_pp(data, latent_factors_size, epochs, error_met
             residual_users = _update_residual_users(residual_users, user_index, measured_error)
 
         print(svd_rmse(historic_rating_matrix, matrix_users_items, users, items, ratings_mean, residual_users, residual_items, ratings, q_matrix))
+
+    predictions = make_prediction(data['Prediction Data'], ratings, ratings_mean, users, items, q_matrix, residual_users, residual_items)
+
+    for index, prediction in enumerate(predictions):
+
+        data['Prediction Data'][index].append(str(prediction))
+
+    data['Prediction Data'].insert(0, ['UserId', 'ItemId', 'Prediction'])
+
+    utils.write_table(data['Prediction Data'], "Outputs/predictions.txt")
+

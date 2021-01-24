@@ -53,13 +53,13 @@ def write_dictionary_matrix(dictionary_matrix, output_name, sep=';'):
         output_file.write('\n')
 
 
-def write_table(matrix, output_name, sep=';'):
+def write_table(matrix, output_name):
 
     with open(output_name, 'w') as output_file:
 
         for row in matrix:
 
-            output_file.write(sep.join(list(map(lambda x: str(x), row))) + '\n')
+            output_file.write(row[0] + ':' + row[1] + ',' + row[2] + '\n')
 
 def retrieve_unique_tokens(data):
     """
@@ -73,3 +73,14 @@ def retrieve_unique_tokens(data):
               "items": list(set(list(map(lambda row: row[1], data))))}
 
     return tokens
+
+
+def write_array(data, output_name):
+
+    with open(output_name, 'w') as output_file:
+
+        data = list(map(lambda x: str(x), data))
+
+        output_file.write('\n'.join(data))
+
+
