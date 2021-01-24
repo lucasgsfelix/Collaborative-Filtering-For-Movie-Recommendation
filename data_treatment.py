@@ -67,11 +67,7 @@ def define_user_item_rating(historic_data):
 
     for row in historic_data:
 
-        users_ratings[row[0]][append(row[1])] = float(row[2])
-
-    for user in user_ratings.keys():
-
-        users_ratings[user] = {k: v for k, v in sorted(users_ratings[user].items(), key=lambda item: item[1], reverse=True)}
+        users_ratings[row[0]][row[1]] = float(row[2])
 
     return users_ratings
 

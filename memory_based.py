@@ -20,10 +20,10 @@ def retrieve_neighbors(matrix, token_index, other_tokens, similarity_metric='cos
 
     for token, index in other_tokens.items():
 
-        similarities[token] = metrics.similarity_measure(matrix[token_index], matrix[index], similarity_metric)
+        similarities[token] = metrics.measure_similarity(matrix[token_index], matrix[index], similarity_metric)
 
     # sorting a dictionary by values, we want reverse 
-    return {k: v for k, v in sorted(similarities.items(), key=lambda item: item[1], reverse=True)}
+    return similarities #{k: v for k, v in sorted(similarities.items(), key=lambda item: item[1], reverse=True)}
 
 
 def get_rating_based_on_closest_items(similarities, user_historic, user_items, amount_neighbors=10):
@@ -67,10 +67,6 @@ def measure_ratings_by_nearest_neighbors(data, modeling='items'):
                 predicted_rating = get_rating_based_on_closest_items(similarities, user_historic[user], users_items[user])
 
                 user_historic[user][token] = predicted_rating
-
-                print(predicted_rating)
-
-                exit()
 
         elif modeling == 'users' and token in users.keys():
 
