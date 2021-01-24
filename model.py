@@ -90,21 +90,21 @@ def _update_p_matrix(p_matrix, q_matrix, user_index, item_index, error, lambda_v
     return p_matrix
 
 
-def _update_q_matrix(q_matrix, p_matrix, user_index, item_index, user, amount_items, lambda_value=0.05, gamma_value=0.01):
+def _update_q_matrix(q_matrix, p_matrix, user_index, item_index, user, amount_items, ratings, lambda_value=0.05, gamma_value=0.01):
 
     for row in range(len(q_matrix)):
 
-        q_matrix[row][item_index] += gamma_value * ((p_matrix[row][user_index] + 1)/math.sqrt(amount_items) * ratings[user][row_index]) - lambda_value * q_matrix[row][item_index]
+        q_matrix[row][item_index] += gamma_value * ((p_matrix[row][user_index] + 1)/math.sqrt(amount_items) * ratings[user][row]) - lambda_value * q_matrix[row][item_index]
 
     return q_matrix
 
-def _update_y_matrix(y_matrix, q_matrix, user_items, user, items, amount_items, lambda_value=0.1, gamma_value=0.01):
+def _update_y_matrix(y_matrix, q_matrix, users_items, user, item_index, amount_items, error, lambda_value=0.1, gamma_value=0.01):
 
-    for row, item in enumerate(users_items[item]):
+    for row, item in enumerate(users_items[user]):
 
-        for column in range(len(y_matrix[items[item]])):
+        for column in range(len(y_matrix[item_index])):
 
-            y_matrix[items[item]][column] += gamma_value * (error * 1/math.sqrt(amount_items) * q_matrix[column][items[item]] - lambda_value * y_matrix[items[item], column])
+            y_matrix[item_index][column] += gamma_value * (error * 1/math.sqrt(amount_items) * q_matrix[column][item_index] - lambda_value * y_matrix[item_index][column])
 
     return y_matrix
 
@@ -114,11 +114,27 @@ def _update_residual_items(residual_items, item_index, error, gamma_value=0.01, 
 
     residual_items[item_index] += gamma_value * (error - lambda_value * residual_items[item_index])
 
+    return residual_items
+
 
 def _update_residual_users(residual_users, user_index, error, gamma_value=0.01, lambda_value=0.05):
 
 
     residual_users[user_index] += gamma_value * (error - lambda_value * residual_users[user_index])
+
+    return residual_users
+
+
+def measure_average_rating(data):
+
+
+    ratings_sum = 0
+
+    for row in data:
+
+        ratings_sum += float(row[2])
+
+    return ratings_sum/len(data)
 
 
 def singular_value_decomposition_pp(data, latent_factors_size, epochs, error_metric):
@@ -134,6 +150,8 @@ def singular_value_decomposition_pp(data, latent_factors_size, epochs, error_met
     users_items, users, items = data_treatment.retrieve_guide_features(data['Historic Data'])
 
     matrix_users_items = data_treatment.mount_matrix_user_item(users_items)
+
+    ratings_mean = measure_average_rating(data['Historic Data'])
 
     # a matrix users x items
     historic_rating_matrix = generate_historic_data_matrix(data['Historic Data'], 'users', users, items)
@@ -163,25 +181,27 @@ def singular_value_decomposition_pp(data, latent_factors_size, epochs, error_met
 
             user_index, item_index = users[user], items[item]
 
-            amount_itens = len(users_items[user])
+            amount_items = len(users_items[user])
 
             # diving all the values of a a array by the sqrt of the users amount of items
-            ratings[user] = list(map(lambda value: value/math.sqrt(amount_itens), ratings[user]))
+            ratings[user] = list(map(lambda value: value/math.sqrt(amount_items), ratings[user]))
 
             # retriving all the values of a specific column
             column_array = retrieve_column(p_matrix, users[user])
 
             ratings[user] = algebric_operations.sum_two_arrays(ratings[user], column_array)
 
-            predicted_rating = svd_prediction(p_matrix[user_index], retrieve_column(q_matrix, items[item]))
+            predicted_rating = ratings_mean + residual_items[item_index] + residual_users[user_index] + svd_prediction(ratings[user], retrieve_column(q_matrix, item_index))
+
+            print(predicted_rating, historic_rating_matrix[users[user]][item_index], svd_prediction(ratings[user], retrieve_column(q_matrix, item_index)))
 
             measured_error = error_metric(historic_rating_matrix[users[user]][item_index], predicted_rating)
 
             p_matrix = _update_p_matrix(p_matrix, q_matrix, user_index, item_index, measured_error)
 
-            q_matrix = _update_q_matrix(q_matrix, p_matrix, user_index, item_index, user, amount_items)
+            q_matrix = _update_q_matrix(q_matrix, p_matrix, user_index, item_index, user, amount_items, ratings)
 
-            y_matrix = _update_y_matrix(y_matrix, q_matrix, user_items, user, items, amount_items)
+            y_matrix = _update_y_matrix(y_matrix, q_matrix, users_items, user, item_index, amount_items, measured_error)
 
             residual_items = _update_residual_items(residual_items, item_index, measured_error)
 
