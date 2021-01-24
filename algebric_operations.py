@@ -74,10 +74,10 @@ def define_matrix_determinant(matrix, lambda_value):
 
     return main_diagonal
 
-def generate_random_matrix(row, columns, min_value=1, max_value=10):
+def generate_random_matrix(row, columns, min_value=0, max_value=1):
 
 
-    return [[random.randint(min_value, max_value) for column in range(columns)] for row_index in range(0, row)]
+    return [[random.uniform(min_value, max_value) for column in range(columns)] for row_index in range(0, row)]
 
 def sum_two_arrays(array_one, array_two):
 

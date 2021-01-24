@@ -4,6 +4,7 @@
 
 """
 import math
+import random
 import algebric_operations
 import data_treatment
 import utils
@@ -79,7 +80,56 @@ def generate_historic_data_matrix(historic_data, modeling, users, items):
 
     return matrix
 
+
+def _update_p_matrix(p_matrix, q_matrix, user_index, item_index, error, lambda_value=0.1, gamma_value=0.01):
+
+    for row in range(len(p_matrix)):
+
+        p_matrix[row][user_index] += gamma_value * (error * q_matrix[row][item_index] - lambda_value * p_matrix[row][user_index])
+
+    return p_matrix
+
+
+def _update_q_matrix(q_matrix, p_matrix, user_index, item_index, user, amount_items, lambda_value=0.05, gamma_value=0.01):
+
+    for row in range(len(q_matrix)):
+
+        q_matrix[row][item_index] += gamma_value * ((p_matrix[row][user_index] + 1)/math.sqrt(amount_items) * ratings[user][row_index]) - lambda_value * q_matrix[row][item_index]
+
+    return q_matrix
+
+def _update_y_matrix(y_matrix, q_matrix, user_items, user, items, amount_items, lambda_value=0.1, gamma_value=0.01):
+
+    for row, item in enumerate(users_items[item]):
+
+        for column in range(len(y_matrix[items[item]])):
+
+            y_matrix[items[item]][column] += gamma_value * (error * 1/math.sqrt(amount_items) * q_matrix[column][items[item]] - lambda_value * y_matrix[items[item], column])
+
+    return y_matrix
+
+
+def _update_residual_items(residual_items, item_index, error, gamma_value=0.01, lambda_value=0.05):
+
+
+    residual_items[item_index] += gamma_value * (error - lambda_value * residual_items[item_index])
+
+
+def _update_residual_users(residual_users, user_index, error, gamma_value=0.01, lambda_value=0.05):
+
+
+    residual_users[user_index] += gamma_value * (error - lambda_value * residual_users[user_index])
+
+
 def singular_value_decomposition_pp(data, latent_factors_size, epochs, error_metric):
+    """
+
+        Based on the code available in:
+
+            https://github.com/cheungdaven/recommendation
+
+
+    """
 
     users_items, users, items = data_treatment.retrieve_guide_features(data['Historic Data'])
 
@@ -99,6 +149,10 @@ def singular_value_decomposition_pp(data, latent_factors_size, epochs, error_met
 
     ratings = calculate_first_estimation(users, users_items, latent_factors_size, y_matrix, items)
 
+    residual_items = [random.uniform(0, 1) for item in range(0, len(items))]
+
+    residual_users = [random.uniform(0, 1) for user in range(0, len(users))]
+
     index_user = 0
 
     for epoch in range(epochs):
@@ -106,6 +160,8 @@ def singular_value_decomposition_pp(data, latent_factors_size, epochs, error_met
         for row in matrix_users_items:
 
             user, item = row[0], row[1]
+
+            user_index, item_index = users[user], items[item]
 
             amount_itens = len(users_items[user])
 
@@ -117,12 +173,16 @@ def singular_value_decomposition_pp(data, latent_factors_size, epochs, error_met
 
             ratings[user] = algebric_operations.sum_two_arrays(ratings[user], column_array)
 
-            predicted_rating = svd_prediction(p_matrix[users[user]], retrieve_column(q_matrix, items[item]))
+            predicted_rating = svd_prediction(p_matrix[user_index], retrieve_column(q_matrix, items[item]))
 
-            measured_error = error_metric(historic_rating_matrix[users[user]][items[item]], predicted_rating)
+            measured_error = error_metric(historic_rating_matrix[users[user]][item_index], predicted_rating)
 
-            print(measured_error)
+            p_matrix = _update_p_matrix(p_matrix, q_matrix, user_index, item_index, measured_error)
 
-            exit()
+            q_matrix = _update_q_matrix(q_matrix, p_matrix, user_index, item_index, user, amount_items)
 
+            y_matrix = _update_y_matrix(y_matrix, q_matrix, user_items, user, items, amount_items)
 
+            residual_items = _update_residual_items(residual_items, item_index, measured_error)
+
+            residual_users = _update_residual_users(residual_users, user_index, measured_error)
