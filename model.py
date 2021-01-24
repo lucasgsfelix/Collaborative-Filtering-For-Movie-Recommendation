@@ -171,8 +171,6 @@ def singular_value_decomposition_pp(data, latent_factors_size, epochs, error_met
 
     residual_users = [random.uniform(0, 1) for user in range(0, len(users))]
 
-    index_user = 0
-
     for epoch in range(epochs):
 
         for row in matrix_users_items:
@@ -193,15 +191,13 @@ def singular_value_decomposition_pp(data, latent_factors_size, epochs, error_met
 
             predicted_rating = ratings_mean + residual_items[item_index] + residual_users[user_index] + svd_prediction(ratings[user], retrieve_column(q_matrix, item_index))
 
-            print(predicted_rating, historic_rating_matrix[users[user]][item_index], svd_prediction(ratings[user], retrieve_column(q_matrix, item_index)))
-
-            measured_error = error_metric(historic_rating_matrix[users[user]][item_index], predicted_rating)
+            measured_error = historic_rating_matrix[user_index][item_index] - predicted_rating # error_metric(historic_rating_matrix[users[user]][item_index], predicted_rating)
 
             p_matrix = _update_p_matrix(p_matrix, q_matrix, user_index, item_index, measured_error)
 
             q_matrix = _update_q_matrix(q_matrix, p_matrix, user_index, item_index, user, amount_items, ratings)
 
-            y_matrix = _update_y_matrix(y_matrix, q_matrix, users_items, user, item_index, amount_items, measured_error)
+            #y_matrix = _update_y_matrix(y_matrix, q_matrix, users_items, user, item_index, amount_items, measured_error)
 
             residual_items = _update_residual_items(residual_items, item_index, measured_error)
 

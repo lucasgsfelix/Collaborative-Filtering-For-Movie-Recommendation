@@ -17,6 +17,11 @@ def matrix_factorization(matrix):
 
     """
 
-    pass
+    users_items, users, items = data_treatment.retrieve_guide_features(data['Historic Data'])
+
+    matrix_users_items = data_treatment.mount_matrix_user_item(users_items)
+
+    # a matrix users x items
+    historic_rating_matrix = model.generate_historic_data_matrix(data['Historic Data'], 'users', users, items)
 
 

@@ -3,81 +3,81 @@
     Collaborative Filtering: Modeling Methods
 
 """
-import os
+
+import data_treatment
 import metrics
-import utils
-
-import time
+import model
 
 
-def verify_pre_computed_similarity_matrix(similarity_metric):
-
-    return "similarity_" + similarity_metric + "_matrix.txt" in os.listdir('Utils')
-
-def model_similarity_matrix(data, similarity_metric='cosine', modeling='items'):
+def retrieve_neighbors(matrix, token_index, other_tokens, similarity_metric='cosine'):
     """
 
-        Modeling the similarity matrix between all tokens (users, itens)
-
-        return similarity_matrix
+        Given a item or user, retrieve the closest neighbors
 
     """
 
-    matrix, tokens = generate_historic_data_matrix(data['Historic Data'], modeling)
+    similarities = {}
 
-    test_tokens = retrieve_unique_tokens(data['Prediction Data'])
+    for token, index in other_tokens.items():
 
-    # removing users with no historic
-    not_historic_users = list(filter(lambda x: x not in tokens['users'].keys(), test_tokens['users'].keys()))
+        similarities[token] = metrics.similarity_measure(matrix[token_index], matrix[index], similarity_metric)
 
-    test_tokens['users'] = {key: value for key, value in test_tokens['users'].items() if key in tokens['users'].keys()}
-
-    # the similarity matrix will be computed only for the items in the test set
-
-    columns = {token_two: 0 for token_two in tokens[modeling].keys()}
-
-    similarity_matrix = {token_one: {} for token_one in test_tokens[modeling].keys()}
+    # sorting a dictionary by values, we want reverse 
+    return {k: v for k, v in sorted(similarities.items(), key=lambda item: item[1], reverse=True)}
 
 
-    if verify_pre_computed_similarity_matrix(similarity_metric):
+def get_rating_based_on_closest_items(similarities, user_historic, user_items, amount_neighbors=10):
 
-        similarity_matrix = utils.read_table("Utils/similarity_" + similarity_metric + "_matrix.txt", sep=';')
+    similarity_sum, similarity_rating, index = 0, 0, 0
 
-        # converting the similarity to float
-        for index, row in enumerate(similarity_matrix):
+    for neighbor, rating in user_historic.items():
 
-            similarity_matrix[index] = list(map(lambda x: float(x), row))
+       similarity_rating += similarities[neighbor] * rating 
 
-    else:
+       similarity_sum ++ similarities[neighbor]
 
-        for token_one in test_tokens[modeling].keys():
+       if index == amount_neighbors:
 
-            start = time.time()
+            break
 
-            index_one = test_tokens[modeling][token_one]
+       index += 1
 
-            print("Current Token: ", token_one)
+    return similarity_rating/similarity_sum
 
-            for token_two in tokens[modeling].keys():
 
-                index_two = tokens[modeling][token_two]
+def measure_ratings_by_nearest_neighbors(data, modeling='items'):
 
-                if token_one == token_two:
+    users_items, users, items = data_treatment.retrieve_guide_features(data['Historic Data'])
 
-                    similarity_matrix[token_one][token_two] = 1
-                else:
+    # a matrix users x items
+    historic_rating_matrix = model.generate_historic_data_matrix(data['Historic Data'], modeling, users, items)
 
-                    similarity_matrix[token_one][token_two] = metrics.measure_similarity(matrix[index_one], matrix[index_two], similarity_metric)
+    modeling_tokens = data_treatment.define_prediction_features(data['Prediction Data'], modeling)
 
-            print(time.time() - start)
+    users_ratings = data_treatment.define_user_item_rating(data['Historic Data'])
 
-            similarity_matrix[token_one] = {k: v for k, v in sorted(similarity_matrix[token_one].items(), key=lambda item: item[1], reverse=True)}[0:100]        
+    for token, token_values in modeling_tokens.items():
 
-        utils.write_dictionary_matrix(similarity_matrix, "Utils/similarity_" + similarity_metric + "_matrix.txt", sep=';')
+        if modeling == 'items' and token in items.keys():
 
-    return similarity_matrix
+            similarities = retrieve_neighbors(historic_rating_matrix, items[token], items)
 
-def measure_nearest_neighbors(data_matrix, k_neighbors):
+            for user in token_values:
 
-    pass
+                predicted_rating = get_rating_based_on_closest_items(similarities, user_historic[user], users_items[user])
+
+                user_historic[user][token] = predicted_rating
+
+                print(predicted_rating)
+
+                exit()
+
+        elif modeling == 'users' and token in users.keys():
+
+            similarities = retrieve_neighbors(historic_rating_matrix, users[token], users)
+
+        else: # then we make a popularity algorithm
+
+            pass
+
 

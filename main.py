@@ -12,6 +12,7 @@
 import sys
 
 import model
+import memory_based
 import metrics
 import utils
 
@@ -26,7 +27,9 @@ if __name__ == '__main__':
 
     start = time.time()
 
-    model.singular_value_decomposition_pp(input_arguments, 10, 100, metrics.root_mean_squared)
+   # model.singular_value_decomposition_pp(input_arguments, 10, 10, metrics.root_mean_squared)
+
+    memory_based.measure_ratings_by_nearest_neighbors(input_arguments, 'items')
 
     end = time.time()
 
