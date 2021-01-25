@@ -95,7 +95,7 @@ def measure_row_mean(matrix):
 
         non_zero_row = list(filter(lambda x: x != 0, row))
 
-        row_mean[index] = sum(non_zero_row)/len(non_zero_row)
+        rows_mean[index] = sum(non_zero_row)/len(non_zero_row)
 
     return rows_mean
 
@@ -121,3 +121,13 @@ def measure_column_mean(matrix):
 
         columns_mean[column] = total_sum/count_valid
 
+
+def subtraction_matrix_row_mean(matrix, rows_mean):
+
+    for row_index, row in enumerate(matrix):
+
+        for column_index, column in enumerate(row):
+
+            matrix[row_index][column_index] -= rows_mean[row_index]
+
+    return matrix

@@ -17,6 +17,7 @@ import model_based
 import metrics
 import utils
 
+import random
 
 import time
 
@@ -28,12 +29,13 @@ if __name__ == '__main__':
 
     start = time.time()
 
-    model_based.singular_value_decomposition_pp(input_arguments, 50, 10, metrics.root_mean_squared)
+    #input_arguments['Historic Data'] = random.sample(input_arguments['Historic Data'], int(len(input_arguments['Historic Data']) * 0.3))
+
+    model_based.singular_value_decomposition_pp(input_arguments, 10, 3, metrics.root_mean_squared)
 
     #memory_based.measure_ratings_by_nearest_neighbors(input_arguments, 'items')
 
     end = time.time()
 
     print(end - start)
-
 
