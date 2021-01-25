@@ -84,3 +84,40 @@ def write_array(data, output_name):
         output_file.write('\n'.join(data))
 
 
+def measure_row_mean(matrix):
+    """
+        Measure each row mean in a matrix
+    """
+
+    rows_mean = {}
+
+    for index, row in enumerate(matrix):
+
+        non_zero_row = list(filter(lambda x: x != 0, row))
+
+        row_mean[index] = sum(non_zero_row)/len(non_zero_row)
+
+    return rows_mean
+
+
+def measure_column_mean(matrix):
+    """
+        Measure each column mean in a matrix
+    """
+
+    columns_mean = {}
+
+    for column in range(len(matrix[0])):
+
+        count_valid, total_sum = 0, 0
+
+        for row in range(len(matrix)):
+
+            total_sum += matrix[row][column]
+
+            if matrix[row][column] != 0: # removing rows that are equal to 0
+
+                count_valid += 1
+
+        columns_mean[column] = total_sum/count_valid
+
