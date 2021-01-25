@@ -126,8 +126,6 @@ def subtraction_matrix_row_mean(matrix, rows_mean):
 
     for row_index, row in enumerate(matrix):
 
-        for column_index, column in enumerate(row):
-
-            matrix[row_index][column_index] -= rows_mean[row_index]
+        matrix[row_index] = list(map(lambda value: value - rows_mean[row_index], row))
 
     return matrix

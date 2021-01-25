@@ -17,12 +17,28 @@ def retrieve_guide_features(historic_data):
 
     users_items = {user: [] for user in tokens['users']}
 
+    items_ratings = dict(zip(tokens['items'], [[]] * len(tokens['items'])))
+    users_ratings = dict(zip(tokens['users'], [[]] * len(tokens['users'])))
+
     for row in historic_data:
 
         users_items[row[0]].append(row[1])
 
+        items_ratings[row[1]].append(float(row[2]))
 
-    return users_items, define_index(tokens['users']), define_index(tokens['items'])
+        users_ratings[row[0]].append(float(row[2]))
+
+
+    for user in users_ratings.keys():
+
+        users_ratings[user] = sum(users_ratings[user])/len(users_ratings[user])
+
+    for item in items_ratings.keys():
+
+        items_ratings[item] = sum(items_ratings[item])/len(items_ratings[item])
+
+
+    return users_items, define_index(tokens['users']), define_index(tokens['items']), users_ratings, items_ratings
 
 
 def define_prediction_features(prediction_data, modeling):

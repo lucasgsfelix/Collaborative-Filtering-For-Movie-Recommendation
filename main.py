@@ -29,9 +29,9 @@ if __name__ == '__main__':
 
     start = time.time()
 
-    #input_arguments['Historic Data'] = random.sample(input_arguments['Historic Data'], int(len(input_arguments['Historic Data']) * 0.3))
+    #input_arguments['Historic Data'] = random.sample(input_arguments['Historic Data'], int(len(input_arguments['Historic Data']) * 0.5))
 
-    model_based.singular_value_decomposition_pp(input_arguments, 10, 3, metrics.root_mean_squared)
+    model_based.singular_value_decomposition_pp(input_arguments, 10, 4, metrics.root_mean_squared)
 
     #memory_based.measure_ratings_by_nearest_neighbors(input_arguments, 'items')
 
