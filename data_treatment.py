@@ -38,7 +38,7 @@ def retrieve_guide_features(historic_data):
         items_ratings[item] = sum(items_ratings[item])/len(items_ratings[item])'''
 
 
-    return users_items, define_index(tokens['users']), define_index(tokens['items'])
+    return users_items, define_index(tokens['users']), define_index(tokens['items'])#, users_ratings, items_ratings
 
 
 def define_prediction_features(prediction_data, modeling):

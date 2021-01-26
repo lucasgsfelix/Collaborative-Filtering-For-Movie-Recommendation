@@ -51,6 +51,14 @@ def make_prediction(prediction_data, p_matrix, q_matrix, ratings_mean, users, it
 
         user, item = row[0], row[1]
 
+        '''if user in users.keys() and item not in items.keys():
+
+            prediction = users_mean[user]
+
+        elif item in items.keys() and user not in users.keys():
+
+            prediction = items_mean[item]'''
+
         if user not in users.keys() or item not in items.keys():
 
             prediction = ratings_mean
@@ -75,7 +83,7 @@ def retrieve_column(matrix, column):
 
     return column_array
 
-def singular_value_decomposition_pp(data, latent_factors_size, epochs):
+def non_negative_matrix_factorization(data, latent_factors_size, epochs):
     """
 
         Based on the code available in:
