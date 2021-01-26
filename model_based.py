@@ -24,13 +24,15 @@ def _update_q_matrix(q_matrix, p_matrix, user_index, item_index, user, amount_it
 
     for row in range(len(q_matrix)):
 
-        q_matrix[row][item_index] += gamma_value * (error * (p_matrix[row][user_index] + 1)/math.sqrt(amount_items) * ratings[user][row]) - lambda_value * q_matrix[row][item_index]
+        q_matrix[row][item_index] += gamma_value * (error * (p_matrix[row][user_index] + 1/math.sqrt(amount_items) * ratings[user][row])) - lambda_value * q_matrix[row][item_index]
 
     return q_matrix
 
-def _update_y_matrix(y_matrix, q_matrix, users_items, user, item_index, amount_items, error, lambda_value=0.1, gamma_value=0.01):
+def _update_y_matrix(y_matrix, q_matrix, users_items, user, items, amount_items, error, lambda_value=0.1, gamma_value=0.01):
 
     for row, item in enumerate(users_items[user]):
+
+        item_index = items[item]
 
         for column in range(len(y_matrix[item_index])):
 
@@ -74,9 +76,9 @@ def calculate_first_estimation(users, users_items, latent_factors_size, y_matrix
 
         for item in users_items[user]: # items consumed by the user
 
-        #    zero_array = algebric_operations.sum_two_arrays(zero_array, y_matrix[items[item]])
+            zero_array = algebric_operations.sum_two_arrays(zero_array, y_matrix[items[item]])
 
-            estimation[user] = y_matrix[items[item]]
+        estimation[user] = zero_array
 
     return estimation
 
@@ -94,7 +96,7 @@ def svd_prediction(p_matrix, q_matrix):
 
     return sum(list(map(lambda x, y: x*y, p_matrix, q_matrix)))
 
-def svd_rmse(historic_rating_matrix, matrix_users_items, users, items, ratings_mean, residual_users, residual_items, ratings, q_matrix):
+def svd_rmse(historic_rating_matrix, matrix_users_items, users, items, ratings_mean, residual_users, residual_items, ratings, q_matrix, y_matrix, users_items, latent_factors_size):
 
     total_error = 0
 
@@ -104,6 +106,12 @@ def svd_rmse(historic_rating_matrix, matrix_users_items, users, items, ratings_m
 
         user_index, item_index = users[user], items[item]
 
+        ratings[user] = [0] * latent_factors_size
+
+        for item in users_items[user]:
+
+            ratings[user] = algebric_operations.sum_two_arrays(ratings[user], y_matrix[item_index])
+
         prediction = (ratings_mean + residual_users[user_index] + residual_items[item_index] + svd_prediction(ratings[user], retrieve_column(q_matrix, item_index)))
 
         total_error += (historic_rating_matrix[user_index][item_index] - prediction) ** 2
@@ -111,7 +119,7 @@ def svd_rmse(historic_rating_matrix, matrix_users_items, users, items, ratings_m
     return math.sqrt(total_error/len(matrix_users_items))
 
 
-def make_prediction(historic_data, prediction_data, ratings, ratings_mean, users, items, q_matrix, residual_users, residual_items, users_mean, items_mean):
+def make_prediction(historic_data, prediction_data, ratings, ratings_mean, users, items, q_matrix, residual_users, residual_items, users_items, y_matrix, latent_factors_size):
 
     predictions = []
 
@@ -121,7 +129,7 @@ def make_prediction(historic_data, prediction_data, ratings, ratings_mean, users
 
         user, item = row[0], row[1]
 
-        if user in users.keys() and item not in items.keys():
+        '''if user in users.keys() and item not in items.keys():
 
             user_index = users[user]
 
@@ -131,9 +139,9 @@ def make_prediction(historic_data, prediction_data, ratings, ratings_mean, users
 
             item_index = items[item]
 
-            prediction = items_mean[item]
+            prediction = items_mean[item]'''
 
-        elif user not in users.keys() or item not in items.keys():
+        if user not in users.keys() or item not in items.keys():
 
             prediction = ratings_mean
 
@@ -141,7 +149,12 @@ def make_prediction(historic_data, prediction_data, ratings, ratings_mean, users
 
             user_index, item_index = users[user], items[item]
 
-            # prediction = (users_mean[user_index] + ratings_mean + residual_users[user_index] + residual_items[item_index] + svd_prediction(ratings[user], retrieve_column(q_matrix, item_index)))
+            ratings[user] = [0] * latent_factors_size
+
+            for item in users_items[user]:
+
+                ratings[user] = algebric_operations.sum_two_arrays(ratings[user], y_matrix[item_index])
+
 
             prediction = (ratings_mean + residual_users[user_index] + residual_items[item_index] + svd_prediction(ratings[user], retrieve_column(q_matrix, item_index)))
 
@@ -150,7 +163,7 @@ def make_prediction(historic_data, prediction_data, ratings, ratings_mean, users
     return predictions
 
 
-def singular_value_decomposition_pp(data, latent_factors_size, epochs, error_metric):
+def singular_value_decomposition_pp(data, latent_factors_size, epochs):
     """
 
         Based on the code available in:
@@ -165,7 +178,7 @@ def singular_value_decomposition_pp(data, latent_factors_size, epochs, error_met
     """
     random.seed()
 
-    users_items, users, items, users_mean, items_mean = data_treatment.retrieve_guide_features(data['Historic Data'])
+    users_items, users, items = data_treatment.retrieve_guide_features(data['Historic Data'])
 
     matrix_users_items = data_treatment.mount_matrix_user_item(users_items)
 
@@ -215,19 +228,24 @@ def singular_value_decomposition_pp(data, latent_factors_size, epochs, error_met
 
             measured_error = historic_rating_matrix[user_index][item_index] - predicted_rating # error_metric(historic_rating_matrix[users[user]][item_index], predicted_rating)
 
+            # cost O(n)
             p_matrix = _update_p_matrix(p_matrix, q_matrix, user_index, item_index, measured_error)
 
+            # cost O(n)
             q_matrix = _update_q_matrix(q_matrix, p_matrix, user_index, item_index, user, amount_items, ratings, measured_error)
 
-            #y_matrix = _update_y_matrix(y_matrix, q_matrix, users_items, user, item_index, amount_items, measured_error)
+            # reconstruction matrix - this will be the closest to the original matrix - cost O(n**2)
+            y_matrix = _update_y_matrix(y_matrix, q_matrix, users_items, user, items, amount_items, measured_error)
 
+            # cost O(1)
             residual_items = _update_residual_items(residual_items, item_index, measured_error)
 
+            # cost O(1)
             residual_users = _update_residual_users(residual_users, user_index, measured_error)
 
-        print(svd_rmse(historic_rating_matrix, matrix_users_items, users, items, ratings_mean, residual_users, residual_items, ratings, q_matrix))
+        print(svd_rmse(historic_rating_matrix, matrix_users_items, users, items, ratings_mean, residual_users, residual_items, ratings, q_matrix, y_matrix, users_items, latent_factors_size))
 
-    predictions = make_prediction(historic_rating_matrix, data['Prediction Data'], ratings, ratings_mean, users, items, q_matrix, residual_users, residual_items, users_mean, items_mean)
+    predictions = make_prediction(historic_rating_matrix, data['Prediction Data'], ratings, ratings_mean, users, items, q_matrix, residual_users, residual_items, users_items, y_matrix, latent_factors_size)
 
     for index, prediction in enumerate(predictions):
 
