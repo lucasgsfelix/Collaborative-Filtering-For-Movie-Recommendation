@@ -13,7 +13,7 @@ import sys
 
 import model
 import memory_based
-import model_based
+import model_based_nmf
 import metrics
 import utils
 
@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     #input_arguments['Historic Data'] = random.sample(input_arguments['Historic Data'], int(len(input_arguments['Historic Data']) * 0.1))
 
-    model_based.singular_value_decomposition_pp(input_arguments, 10, 100)
+    model_based_nmf.singular_value_decomposition_pp(input_arguments, 10, 100)
 
     #memory_based.measure_ratings_by_nearest_neighbors(input_arguments, 'items')
 

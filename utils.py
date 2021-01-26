@@ -121,7 +121,6 @@ def measure_column_mean(matrix):
 
         columns_mean[column] = total_sum/count_valid
 
-
 def subtraction_matrix_row_mean(matrix, rows_mean):
 
     for row_index, row in enumerate(matrix):
@@ -129,3 +128,14 @@ def subtraction_matrix_row_mean(matrix, rows_mean):
         matrix[row_index] = list(map(lambda value: value - rows_mean[row_index], row))
 
     return matrix
+
+def measure_average_rating(data):
+
+
+    ratings_sum = 0
+
+    for row in data:
+
+        ratings_sum += float(row[2])
+
+    return ratings_sum/len(data)

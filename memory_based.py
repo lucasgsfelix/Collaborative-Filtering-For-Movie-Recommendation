@@ -7,7 +7,7 @@
 import data_treatment
 import metrics
 import model
-
+import utils
 
 def retrieve_neighbors(matrix, token_index, other_tokens, similarity_metric='cosine'):
     """
@@ -52,7 +52,10 @@ def measure_ratings_by_nearest_neighbors(data, modeling='items'):
     # a matrix users x items
     historic_rating_matrix = model.generate_historic_data_matrix(data['Historic Data'], modeling, users, items)
 
+    # prediction data
     modeling_tokens = data_treatment.define_prediction_features(data['Prediction Data'], modeling)
+
+    ratings_mean = utils.measure_average_rating(data['Historic Data'])
 
     users_ratings = data_treatment.define_user_item_rating(data['Historic Data'])
 
