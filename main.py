@@ -14,6 +14,7 @@ import sys
 import model
 import memory_based
 import model_based_nmf
+import model_based_svd
 import metrics
 import utils
 
@@ -27,11 +28,14 @@ if __name__ == '__main__':
     input_arguments = {"Historic Data": utils.read_table(sys.argv[1], ':', ','),
                        "Prediction Data": utils.read_table(sys.argv[2], ':')}
 
+    output_file = sys.argv[4]
+
     start = time.time()
 
-    #input_arguments['Historic Data'] = random.sample(input_arguments['Historic Data'], int(len(input_arguments['Historic Data']) * 0.1))
+    #input_arguments['Historic Data'] = random.sample(input_arguments['Historic Data'], int(len(input_arguments['Historic Data']) * 0.5))
 
-    model_based_nmf.non_negative_matrix_factorization(input_arguments, 10, 20)
+    #model_based_svd.singular_value_decomposition_pp(input_arguments, 10, 10)
+    model_based_nmf.non_negative_matrix_factorization(input_arguments, 50, 20, output_file)
 
     #memory_based.measure_ratings_by_nearest_neighbors(input_arguments, 'items')
 
