@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     #input_arguments['Historic Data'] = random.sample(input_arguments['Historic Data'], int(len(input_arguments['Historic Data']) * 0.1))
 
-    model_based_nmf.non_negative_matrix_factorization(input_arguments, 100, 50)
+    model_based_nmf.non_negative_matrix_factorization(input_arguments, 10, 20)
 
     #memory_based.measure_ratings_by_nearest_neighbors(input_arguments, 'items')
 

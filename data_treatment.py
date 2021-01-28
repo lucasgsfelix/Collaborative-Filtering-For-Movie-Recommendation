@@ -17,28 +17,33 @@ def retrieve_guide_features(historic_data):
 
     users_items = {user: [] for user in tokens['users']}
 
-    items_ratings = dict(zip(tokens['items'], [[]] * len(tokens['items'])))
-    users_ratings = dict(zip(tokens['users'], [[]] * len(tokens['users'])))
+    # ratings, amount [0], [0]
+    items_ratings = dict(zip(tokens['items'], [[0, 0]] * len(tokens['items'])))
+    users_ratings = dict(zip(tokens['users'], [[0, 0]] * len(tokens['users'])))
 
     for row in historic_data:
 
         users_items[row[0]].append(row[1])
 
-        items_ratings[row[1]].append(float(row[2]))
+        items_ratings[row[1]][0] += float(row[2])
 
-        users_ratings[row[0]].append(float(row[2]))
+        users_ratings[row[0]][0] += float(row[2]) # summing the raitings
+
+        items_ratings[row[1]][1] += 1
+
+        users_ratings[row[0]][1] += 1
 
 
-    '''for user in users_ratings.keys():
+    for user in users_ratings.keys():
 
-        users_ratings[user] = sum(users_ratings[user])/len(users_ratings[user])
+        users_ratings[user] = users_ratings[user][0]/users_ratings[user][1]
 
     for item in items_ratings.keys():
 
-        items_ratings[item] = sum(items_ratings[item])/len(items_ratings[item])'''
+        items_ratings[item] = items_ratings[item][0]/items_ratings[item][1]
 
 
-    return users_items, define_index(tokens['users']), define_index(tokens['items'])#, users_ratings, items_ratings
+    return users_items, define_index(tokens['users']), define_index(tokens['items']), users_ratings, items_ratings
 
 
 def define_prediction_features(prediction_data, modeling):

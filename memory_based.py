@@ -26,28 +26,30 @@ def retrieve_neighbors(matrix, token_index, other_tokens, similarity_metric='cos
     return similarities #{k: v for k, v in sorted(similarities.items(), key=lambda item: item[1], reverse=True)}
 
 
-def get_rating_based_on_closest_items(similarities, user_historic, user_items, amount_neighbors=10):
+def get_rating_based_on_closest_items(similarities, users_historic, item, amount_neighbors=10):
 
     similarity_sum, similarity_rating, index = 0, 0, 0
 
-    for neighbor, rating in user_historic.items():
+    for neighbor, item in user_historic.items():
 
-       similarity_rating += similarities[neighbor] * rating 
+        rating = user_historic[neighbor][item]
 
-       similarity_sum ++ similarities[neighbor]
+        similarity_rating += similarities[neighbor] * rating 
 
-       if index == amount_neighbors:
+        similarity_sum += similarities[neighbor]
+
+        if index == amount_neighbors:
 
             break
 
-       index += 1
+        index += 1
 
     return similarity_rating/similarity_sum
 
 
 def measure_ratings_by_nearest_neighbors(data, modeling='items'):
 
-    users_items, users, items = data_treatment.retrieve_guide_features(data['Historic Data'])
+    users_items, users, items, users_ratings, items_ratings = data_treatment.retrieve_guide_features(data['Historic Data'])
 
     # a matrix users x items
     historic_rating_matrix = model.generate_historic_data_matrix(data['Historic Data'], modeling, users, items)
@@ -61,22 +63,25 @@ def measure_ratings_by_nearest_neighbors(data, modeling='items'):
 
     for token, token_values in modeling_tokens.items():
 
-        if modeling == 'items' and token in items.keys():
+        if modeling == 'items':
 
             similarities = retrieve_neighbors(historic_rating_matrix, items[token], items)
 
             for user in token_values:
 
-                predicted_rating = get_rating_based_on_closest_items(similarities, user_historic[user], users_items[user])
+                if user not in users.keys() or token not in items.keys():
+
+                    prediction_rating = ratings_mean
+
+                else:
+
+                    predicted_rating = get_rating_based_on_closest_items(similarities, users_ratings, token)
+
+                    print(predicted_rating)
 
                 user_historic[user][token] = predicted_rating
 
-        elif modeling == 'users' and token in users.keys():
+        elif modeling == 'users':
 
             similarities = retrieve_neighbors(historic_rating_matrix, users[token], users)
-
-        else: # then we make a popularity algorithm
-
-            pass
-
 

@@ -43,7 +43,7 @@ def measure_rmse(matrix_users_items, historic_rating_matrix, p_matrix, q_matrix,
 
     return math.sqrt((total_error)/len(matrix_users_items))
 
-def make_prediction(prediction_data, p_matrix, q_matrix, ratings_mean, users, items):
+def make_prediction(prediction_data, p_matrix, q_matrix, ratings_mean, users, items, users_mean, items_mean):
 
     predictions = []
 
@@ -51,13 +51,13 @@ def make_prediction(prediction_data, p_matrix, q_matrix, ratings_mean, users, it
 
         user, item = row[0], row[1]
 
-        '''if user in users.keys() and item not in items.keys():
+        if user in users.keys() and item not in items.keys():
 
             prediction = users_mean[user]
 
         elif item in items.keys() and user not in users.keys():
 
-            prediction = items_mean[item]'''
+            prediction = items_mean[item]
 
         if user not in users.keys() or item not in items.keys():
 
@@ -90,10 +90,18 @@ def non_negative_matrix_factorization(data, latent_factors_size, epochs):
 
             https://github.com/cheungdaven/recommendation/blob/master/recSysNMF.py
 
+        We also use as guide:
+
+
+            https://blog.acolyer.org/2019/02/18/the-why-and-how-of-nonnegative-matrix-factorization/
+            Class 08 - Collaborative Filtering: Factorization Matrix
+
     """
     random.seed()
 
-    users_items, users, items = data_treatment.retrieve_guide_features(data['Historic Data'])
+    users_items, users, items, users_ratings, items_ratings = data_treatment.retrieve_guide_features(data['Historic Data'])
+
+    tokens = utils.retrieve_unique_tokens(data['Prediction Data'])
 
     matrix_users_items = data_treatment.mount_matrix_user_item(users_items)
 
@@ -124,7 +132,7 @@ def non_negative_matrix_factorization(data, latent_factors_size, epochs):
 
         print(measure_rmse(matrix_users_items, historic_rating_matrix, p_matrix, q_matrix, users, items))
 
-    predictions = make_prediction(data['Prediction Data'], p_matrix, q_matrix, ratings_mean, users, items)
+    predictions = make_prediction(data['Prediction Data'], p_matrix, q_matrix, ratings_mean, users, items, users_ratings, items_ratings)
 
     for index, prediction in enumerate(predictions):
 
