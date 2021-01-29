@@ -16,6 +16,7 @@ import memory_based
 import model_based_nmf
 import model_based_svd
 import metrics
+import split_test
 import utils
 
 import random
@@ -28,16 +29,23 @@ if __name__ == '__main__':
     input_arguments = {"Historic Data": utils.read_table(sys.argv[1], ':', ','),
                        "Prediction Data": utils.read_table(sys.argv[2], ':')}
 
-    output_file = sys.argv[4]
+
+    output_file = sys.argv[3]
 
     start = time.time()
 
-    #input_arguments['Historic Data'] = random.sample(input_arguments['Historic Data'], int(len(input_arguments['Historic Data']) * 0.5))
+    test = True
 
-    #model_based_svd.singular_value_decomposition_pp(input_arguments, 10, 10)
-    model_based_nmf.non_negative_matrix_factorization(input_arguments, 50, 20, output_file)
+    input_arguments['Historic Data'] = random.sample(input_arguments['Historic Data'], int(len(input_arguments['Historic Data']) * 0.1) )
 
-    #memory_based.measure_ratings_by_nearest_neighbors(input_arguments, 'items')
+    if test:
+
+        split_test.split_test(input_arguments)
+
+    else:
+
+        model_based_nmf.non_negative_matrix_factorization(input_arguments, 50, 20, output_file)
+
 
     end = time.time()
 

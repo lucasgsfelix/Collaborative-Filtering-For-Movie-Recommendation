@@ -93,4 +93,4 @@ def root_mean_squared(predicted, real):
         assert "Predicted and Real arrays most have the same lenght !"
 
 
-    return math.sqrt(sum(list(map(lambda y_pred, y_real: (y_pred - y_real)** 2))/len(predicted)))
+    return math.sqrt(sum(list(map(lambda y_pred, y_real: (y_pred - y_real)** 2, predicted, real)))/len(predicted))

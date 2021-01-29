@@ -83,7 +83,7 @@ def retrieve_column(matrix, column):
 
     return column_array
 
-def non_negative_matrix_factorization(data, latent_factors_size, epochs, output_file):
+def non_negative_matrix_factorization(data, latent_factors_size, epochs, output_file=None, test=False):
     """
 
         Based on the code available in:
@@ -109,6 +109,8 @@ def non_negative_matrix_factorization(data, latent_factors_size, epochs, output_
     # itens latent matrix
     q_matrix = algebric_operations.generate_random_matrix(latent_factors_size, len(items))
 
+    epochs_rmse = []
+
     for epoch in range(epochs):
 
         for row in data['Historic Data']:
@@ -123,9 +125,15 @@ def non_negative_matrix_factorization(data, latent_factors_size, epochs, output_
 
             q_matrix = _update_matrixes(q_matrix, p_matrix, item_index, user_index, error)
 
-        print(measure_rmse(data['Historic Data'], p_matrix, q_matrix, users, items, users_ratings, items_ratings))
+        epochs_rmse.append(measure_rmse(data['Historic Data'], p_matrix, q_matrix, users, items, users_ratings, items_ratings))
+
+        print(epochs_rmse[-1])
 
     predictions = make_prediction(data['Prediction Data'], p_matrix, q_matrix, ratings_mean, users, items, users_ratings, items_ratings)
+
+    if test:
+
+        return predictions, epochs_rmse
 
     for index, prediction in enumerate(predictions):
 
