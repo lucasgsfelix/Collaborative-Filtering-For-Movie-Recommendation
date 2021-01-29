@@ -36,15 +36,23 @@ if __name__ == '__main__':
 
     test = True
 
-    input_arguments['Historic Data'] = random.sample(input_arguments['Historic Data'], int(len(input_arguments['Historic Data']) * 0.1) )
+    #input_arguments['Historic Data'] = random.sample(input_arguments['Historic Data'], int(len(input_arguments['Historic Data']) * 0.1) )
 
     if test:
 
-        split_test.split_test(input_arguments)
+        for test in range(0, 10):
+
+            split_test.split_test(input_arguments)
 
     else:
 
-        model_based_nmf.non_negative_matrix_factorization(input_arguments, 50, 20, output_file)
+        with open("Data/time_reports.csv", "a+") as time_report:
+
+            latent_factors, epochs = 50, 20
+
+            model_based_nmf.non_negative_matrix_factorization(input_arguments, 50, 20, output_file)
+
+            time_report.write('\t'.join([latent_factors, epochs, time.time() - start]) + '\n')
 
 
     end = time.time()

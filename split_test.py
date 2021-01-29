@@ -29,7 +29,7 @@ def split_test(input_arguments):
 
     all_predictions = []
 
-    latent_size, epochs = 10, 1
+    latent_size, epochs = 10, 10
 
     for fold in range(k_folds):
 
@@ -63,4 +63,6 @@ def split_test(input_arguments):
 
     print("Final RMSE: ", rmse)
 
-    paramters_file.write('\t'.join([str(latent_size), str(epochs), str(k_folds), str(rmse), str(time.time() - start)]))
+    paramters_file.write('\t'.join([str(latent_size), str(epochs), str(k_folds), str(rmse), str(time.time() - start)]) + '\n')
+
+    paramters_file.close()
