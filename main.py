@@ -10,15 +10,12 @@
 """
 
 import sys
+import random
 
 import model
 import model_based
 import metrics
 import utils
-
-import random
-
-import time
 
 def recommender_system(latent_factors, epochs, output_file):
 
@@ -31,9 +28,9 @@ def recommender_system(latent_factors, epochs, output_file):
 
         model_based.non_negative_matrix_factorization(input_arguments, latent_factors, epochs, output_file)
 
-        time_report.write('\t'.join([str(latent_factors), str(epochs), str(time.time() - start)]) + '\n')
+        time_report.write('\t'.join([str(latent_factors), str(epochs)]) + '\n')
 
 
 if __name__ == '__main__':
 
-    recommender_system(10, 20, "predictions.csv")
+    recommender_system(10, 2, "predictions.csv")
