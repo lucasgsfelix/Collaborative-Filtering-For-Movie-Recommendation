@@ -127,7 +127,7 @@ def non_negative_matrix_factorization(data, latent_factors_size, epochs, output_
 
         epochs_rmse.append(measure_rmse(data['Historic Data'], p_matrix, q_matrix, users, items, users_ratings, items_ratings))
 
-        print(epochs_rmse[-1])
+        print(epoch, epochs_rmse[-1])
 
     predictions = make_prediction(data['Prediction Data'], p_matrix, q_matrix, ratings_mean, users, items, users_ratings, items_ratings)
 

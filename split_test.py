@@ -7,15 +7,14 @@
 import time
 import metrics
 import model_based_nmf
+import statistics
 
+def split_test(input_arguments, latent_size, epochs):
 
-def split_test(input_arguments):
-
-    start = time.time()
 
     paramters_file = open("Outputs/relatorio.csv", "a+")
 
-    k_folds = 10
+    k_folds = 5
 
     for index, row in enumerate(input_arguments['Historic Data']):
 
@@ -27,13 +26,16 @@ def split_test(input_arguments):
     data_per_fold = int(len(input_arguments['Historic Data'])/k_folds)
     total_data = len(input_arguments['Historic Data'])
 
-    all_predictions = []
 
-    latent_size, epochs = 10, 10
+    total_rmse = []
 
     for fold in range(k_folds):
 
         data = {}
+
+        print("Fold: ", fold, latent_size, epochs)
+
+        start = time.time()
 
         if fold == 0:
 
@@ -55,14 +57,13 @@ def split_test(input_arguments):
 
         predictions, epochs_rmse = model_based_nmf.non_negative_matrix_factorization(data, latent_size, epochs, None, True)
 
-        all_predictions.extend(predictions)
+        real_values = list(map(lambda row: float(row[2]), input_arguments['Historic Data']))
+        rmse = metrics.root_mean_squared(predictions, real_values)
+
+        total_rmse.append(rmse)
 
 
-    real_values = list(map(lambda row: float(row[2]), input_arguments['Historic Data']))
-    rmse = metrics.root_mean_squared(predictions, real_values)
-
-    print("Final RMSE: ", rmse)
-
-    paramters_file.write('\t'.join([str(latent_size), str(epochs), str(k_folds), str(rmse), str(time.time() - start)]) + '\n')
+    paramters_file.write('\t'.join([str(latent_size), str(epochs), str(k_folds), str(statistics.mean(total_rmse)),
+                                   (str(statistics.stdev(total_rmse))), str(time.time() - start)]) + '\n')
 
     paramters_file.close()
