@@ -27,7 +27,7 @@ def retrieve_guide_features(historic_data):
 
         items_ratings[row[1]][0] += float(row[2])
 
-        users_ratings[row[0]][0] += float(row[2]) # summing the raitings
+        users_ratings[row[0]][0] += float(row[2]) # summing the ratings
 
         items_ratings[row[1]][1] += 1
 
