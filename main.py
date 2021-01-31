@@ -11,6 +11,7 @@
 
 import sys
 import random
+import time
 
 import model
 import model_based
@@ -23,6 +24,7 @@ def recommender_system(latent_factors, epochs, output_file):
     input_arguments = {"Historic Data": utils.read_table(sys.argv[1], ':', ','),
                        "Prediction Data": utils.read_table(sys.argv[2], ':')}
 
+    start = time.time()
 
     with open("time_reports.csv", "a+") as time_report:
 
@@ -30,7 +32,9 @@ def recommender_system(latent_factors, epochs, output_file):
 
         time_report.write('\t'.join([str(latent_factors), str(epochs)]) + '\n')
 
+    print("TIme ": time.time() - start)
+
 
 if __name__ == '__main__':
 
-    recommender_system(10, 2, "predictions.csv")
+    recommender_system(20, 10, "predictions.csv")
