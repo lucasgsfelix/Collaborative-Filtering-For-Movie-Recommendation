@@ -32,7 +32,7 @@ def recommender_system(latent_factors, epochs, output_file):
 
         time_report.write('\t'.join([str(latent_factors), str(epochs)]) + '\n')
 
-    print("TIme ": time.time() - start)
+    print("TIme ", time.time() - start)
 
 
 if __name__ == '__main__':
